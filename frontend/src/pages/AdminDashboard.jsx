@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import Page from '../components/Page';
 import LogoutModal from '../components/LogoutModal';
 import { ConfirmModal, SuccessModal } from '../components/ConfirmModal';
-import { api } from '../api';
+import { api, uploadUrl } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { initialsOf } from '../helpers';
 
@@ -75,6 +75,9 @@ function AdminContent() {
 
   const name = user ? user.user_name : 'Main Admin';
   const initials = user ? initialsOf(user.user_name) : 'MA';
+  const avatar = user && user.user_photo
+    ? <img src={uploadUrl(user.user_photo)} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} alt="Admin" />
+    : null;
 
   const badge = (id, value) => (
     <span className="badge-count" id={id} style={{ display: !value || value == 0 ? 'none' : 'inline-flex' }}>{value || 0}</span>
@@ -93,7 +96,9 @@ function AdminContent() {
       {/* ============ SIDEBAR ============ */}
       <aside className={`sidebar${sidebarOpen ? ' open' : ''}`} id="sidebar">
         <div className="sidebar-header">
-          <div className="sidebar-avatar initials" id="sidebarAvatar">{initials}</div>
+          <div className="sidebar-avatar" id="sidebarAvatar" style={{ overflow: 'hidden' }}>
+            {avatar || <span className="initials">{initials}</span>}
+          </div>
           <div className="sidebar-name" id="sidebarName">{name}</div>
           <div className="sidebar-role">Admin Panel</div>
         </div>
@@ -128,7 +133,9 @@ function AdminContent() {
           </div>
           <div className="topbar-right">
             <div className="topbar-admin">
-              <div className="topbar-admin-avatar" id="topbarAvatar">{initials}</div>
+              <div className="topbar-admin-avatar" id="topbarAvatar" style={{ overflow: 'hidden' }}>
+                {avatar || initials}
+              </div>
               <span className="topbar-admin-name" id="topbarName">{name}</span>
             </div>
           </div>

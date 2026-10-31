@@ -1,6 +1,6 @@
 // #sec-profile (Admin profile, Update password, SMTP configuration)
 import { useEffect, useRef, useState } from 'react';
-import { api, toFormData } from '../../api';
+import { api, toFormData, uploadUrl } from '../../api';
 import { initialsOf } from '../../helpers';
 import PasswordInput from '../PasswordInput';
 import { Msg } from './common';
@@ -8,7 +8,7 @@ import { Msg } from './common';
 const pwdStyle = { paddingLeft: 16, paddingRight: 44 };
 
 export default function ProfileSection({ success, onProfileUpdated }) {
-  const [profile, setProfile] = useState({ username: '', full_name: '', email: '' });
+  const [profile, setProfile] = useState({ username: '', full_name: '', email: '', profile_photo: '' });
   const [profileAlert, setProfileAlert] = useState(null);
   const photoRef = useRef(null);
 
@@ -22,7 +22,12 @@ export default function ProfileSection({ success, onProfileUpdated }) {
     (async () => {
       const info = await api.get('/admin/info');
       if (info.success && info.admin) {
-        setProfile({ username: info.admin.username || '', full_name: info.admin.full_name || '', email: info.admin.email || '' });
+        setProfile({
+          username: info.admin.username || '',
+          full_name: info.admin.full_name || '',
+          email: info.admin.email || '',
+          profile_photo: info.admin.profile_photo || ''
+        });
       }
       // Load SMTP Settings
       const s = await api.get('/settings/smtp');
@@ -51,7 +56,11 @@ export default function ProfileSection({ success, onProfileUpdated }) {
     if (data.success) {
       success('Profile Updated', data.message);
       setProfileAlert(null);
-      onProfileUpdated();
+      if (data.profile_photo) {
+        setProfile(p => ({ ...p, profile_photo: data.profile_photo }));
+      }
+      if (photoRef.current) photoRef.current.value = '';
+      if (onProfileUpdated) onProfileUpdated();
     } else {
       setProfileAlert({ type: 'danger', msg: data.message });
     }
@@ -87,7 +96,13 @@ export default function ProfileSection({ success, onProfileUpdated }) {
             <div id="profileAlert"><Msg a={profileAlert} /></div>
             <div style={{ marginBottom: 20 }}>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 10 }}>Current Profile Photo</p>
-              <div className="sidebar-avatar initials" id="profileAvatarBig" style={{ width: 80, height: 80, fontSize: '2rem', borderRadius: '50%', margin: 0 }}>{initialsOf(profile.full_name) || 'MA'}</div>
+              <div className="sidebar-avatar" id="profileAvatarBig" style={{ width: 80, height: 80, borderRadius: '50%', margin: 0, overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {profile.profile_photo ? (
+                  <img src={uploadUrl(profile.profile_photo)} alt="Admin Profile" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                ) : (
+                  <span className="initials" style={{ fontSize: '2rem' }}>{initialsOf(profile.full_name) || 'MA'}</span>
+                )}
+              </div>
             </div>
             <div className="form-row">
               <div className="form-group"><label>Username</label><input type="text" className="form-control" id="profileUsername" value={profile.username} onChange={setP('username')} /></div>

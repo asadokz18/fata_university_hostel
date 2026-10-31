@@ -63,12 +63,8 @@ exports.updateProfile = async (req, res) => {
     const ext = extOf(req.file.originalname);
     if (!['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'jfif'].includes(ext))
       return fail(res, 'Invalid image format.');
-    const filename = `${req.role.toLowerCase()}_${req.uid}_${ts()}.${ext}`;
-    try {
-      update.profile_photo = saveUpload(req.file, 'profile', filename);
-    } catch (e) {
-      return fail(res, 'Photo upload failed.');
-    }
+    if (req.file.size > 2 * 1024 * 1024) return fail(res, 'Image too large. Max size is 2MB.');
+    update.profile_photo = `data:${req.file.mimetype || 'image/jpeg'};base64,${req.file.buffer.toString('base64')}`;
   }
 
   try {

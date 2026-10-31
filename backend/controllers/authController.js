@@ -29,8 +29,8 @@ const sendTemplate = (to, tpl) => sendHostelEmail(to, tpl.subject, tpl.html);
 function storeProfilePhoto(file, prefix) {
   if (!hasFile(file)) return { path: '' };
   if (!PHOTO_EXT.includes(extOf(file.originalname))) return { error: 'Invalid photo format.' };
-  const filename = `${prefix}_${Math.floor(Date.now() / 1000)}_${Math.floor(1000 + Math.random() * 9000)}.${extOf(file.originalname)}`;
-  return { path: saveUpload(file, 'profile', filename) };
+  if (file.size > 2 * 1024 * 1024) return { error: 'Image too large. Max size is 2MB.' };
+  return { path: `data:${file.mimetype || 'image/jpeg'};base64,${file.buffer.toString('base64')}` };
 }
 
 // ============================================

@@ -644,7 +644,8 @@ exports.updateProfile = async (req, res) => {
   if (hasFile(req.file)) {
     const ext = extOf(req.file.originalname);
     if (!['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return fail(res, 'Invalid image.');
-    photo = saveUpload(req.file, 'admin', `admin_${Math.floor(Date.now() / 1000)}.${ext}`);
+    if (req.file.size > 2 * 1024 * 1024) return fail(res, 'Image too large. Max size is 2MB.');
+    photo = `data:${req.file.mimetype || 'image/jpeg'};base64,${req.file.buffer.toString('base64')}`;
   }
 
   const update = { full_name, email, username };
@@ -656,7 +657,7 @@ exports.updateProfile = async (req, res) => {
     if (err.code === 11000) return fail(res, 'Username or email is already in use.');
     return fail(res, err.message);
   }
-  ok(res, { message: 'Admin profile updated.' });
+  ok(res, { message: 'Admin profile updated.', profile_photo: photo || undefined });
 };
 
 // GET /api/admin/info
