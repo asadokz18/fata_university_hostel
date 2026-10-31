@@ -162,10 +162,12 @@ function hasFile(file) {
 }
 
 function saveUpload(file, folder, filename) {
-  const dir = path.join(UPLOAD_ROOT, folder);
-  fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(path.join(dir, filename), file.buffer);
-  return `assets/uploads/${folder}/${filename}`;
+  if (file && file.buffer) {
+    const isPdf = extOf(file.originalname) === 'pdf';
+    const mime = file.mimetype || (isPdf ? 'application/pdf' : 'image/jpeg');
+    return `data:${mime};base64,${file.buffer.toString('base64')}`;
+  }
+  return '';
 }
 
 function deleteUpload(relPath) {

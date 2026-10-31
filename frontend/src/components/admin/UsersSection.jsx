@@ -55,7 +55,21 @@ export default function UsersSection() {
                     <td>{i + 1}</td>
                     <td>
                       <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--primary)', color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, fontSize: '0.8rem', overflow: 'hidden' }}>
-                        {u.profile_photo ? <img src={uploadUrl(u.profile_photo)} style={{ width: '100%', height: '100%', objectFit: 'cover' }} alt="" /> : u.full_name[0]}
+                        {u.profile_photo ? (
+                          <img
+                            src={uploadUrl(u.profile_photo)}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                            alt=""
+                            onError={e => {
+                              e.currentTarget.style.display = 'none';
+                              if (e.currentTarget.parentElement) {
+                                e.currentTarget.parentElement.innerText = (u.full_name || 'U')[0].toUpperCase();
+                              }
+                            }}
+                          />
+                        ) : (
+                          (u.full_name || 'U')[0].toUpperCase()
+                        )}
                       </div>
                     </td>
                     <td>{u.full_name}</td>

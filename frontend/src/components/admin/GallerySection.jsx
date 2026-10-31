@@ -72,7 +72,16 @@ export default function GallerySection({ confirm, refreshDashboard }) {
                   <tr key={g.id}>
                     <td>{new Date(g.uploaded_at).toLocaleDateString()}</td>
                     <td>{g.uploaded_by_role === 'Admin' ? '🔧 Admin' : '👤 ' + g.uploaded_by_role}</td>
-                    <td><img src={uploadUrl(g.image_path)} style={{ width: 60, height: 45, objectFit: 'cover', borderRadius: 6 }} alt="" /></td>
+                    <td>
+                      <img
+                        src={uploadUrl(g.image_path)}
+                        style={{ width: 60, height: 45, objectFit: 'cover', borderRadius: 6 }}
+                        alt=""
+                        onError={e => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    </td>
                     <td>{g.caption || '—'}</td>
                     <td><Badge cls={g.status.toLowerCase()}>{g.status}</Badge></td>
                     <td>
