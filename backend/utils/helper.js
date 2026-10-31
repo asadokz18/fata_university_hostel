@@ -183,21 +183,41 @@ function deleteUpload(relPath) {
 
 // --------------------------------------------
 // ROOM AVAILABILITY SYNC  (replaces sync_room_availability() in db.php)
-// Recalculates available_spaces + status from the approved applications
+// Recalculates available_spaces + status from the approved applications.
+// Also auto-cleans orphan applications whose users were deleted from DB.
 // --------------------------------------------
 async function syncRoomAvailability(roomId) {
   if (!roomId) return;
   const Room = require('../models/Room');
   const Application = require('../models/Application');
+  const Student = require('../models/Student');
+  const Faculty = require('../models/Faculty');
 
   const room = await Room.findById(roomId);
   if (!room) return;
 
-  const occupied = await Application.countDocuments({
+  const approvedApps = await Application.find({
     room_id: room._id,
     status: 'Approved',
     application_type: 'Apply'
   });
+
+  let occupied = 0;
+  const orphanIds = [];
+
+  for (const a of approvedApps) {
+    const Model = String(a.user_role).toLowerCase() === 'faculty' ? Faculty : Student;
+    const exists = await Model.exists({ _id: a.user_id });
+    if (exists) {
+      occupied++;
+    } else {
+      orphanIds.push(a._id);
+    }
+  }
+
+  if (orphanIds.length) {
+    await Application.deleteMany({ _id: { $in: orphanIds } });
+  }
 
   const available = Math.max(0, room.capacity - occupied);
   room.available_spaces = available;
@@ -205,23 +225,60 @@ async function syncRoomAvailability(roomId) {
   await room.save();
 }
 
-// "Auto-heal": sync every room (called before room lists are returned)
+// "Auto-heal": sync every room (called before room lists and dashboard stats are returned)
 async function syncAllRooms() {
   const Room = require('../models/Room');
   const Application = require('../models/Application');
+  const Student = require('../models/Student');
+  const Faculty = require('../models/Faculty');
 
   const rooms = await Room.find({}, 'capacity available_spaces status');
   if (!rooms.length) return;
 
-  const counts = await Application.aggregate([
-    { $match: { status: 'Approved', application_type: 'Apply' } },
-    { $group: { _id: '$room_id', c: { $sum: 1 } } }
-  ]);
-  const occupiedBy = new Map(counts.map(c => [String(c._id), c.c]));
+  const approvedApps = await Application.find({
+    status: 'Approved',
+    application_type: 'Apply'
+  });
+
+  const validOccupiedCounts = new Map();
+  const orphanIds = [];
+
+  if (approvedApps.length) {
+    const studentIds = approvedApps
+      .filter(a => String(a.user_role).toLowerCase() === 'student')
+      .map(a => a.user_id);
+    const facultyIds = approvedApps
+      .filter(a => String(a.user_role).toLowerCase() === 'faculty')
+      .map(a => a.user_id);
+
+    const [existingStudents, existingFaculty] = await Promise.all([
+      studentIds.length ? Student.find({ _id: { $in: studentIds } }, '_id') : [],
+      facultyIds.length ? Faculty.find({ _id: { $in: facultyIds } }, '_id') : []
+    ]);
+
+    const validUserIds = new Set([
+      ...existingStudents.map(s => String(s._id)),
+      ...existingFaculty.map(f => String(f._id))
+    ]);
+
+    for (const a of approvedApps) {
+      if (validUserIds.has(String(a.user_id))) {
+        const rId = String(a.room_id);
+        validOccupiedCounts.set(rId, (validOccupiedCounts.get(rId) || 0) + 1);
+      } else {
+        // User was deleted directly from the database; mark orphan for removal
+        orphanIds.push(a._id);
+      }
+    }
+
+    if (orphanIds.length) {
+      await Application.deleteMany({ _id: { $in: orphanIds } });
+    }
+  }
 
   const ops = [];
   for (const room of rooms) {
-    const occupied = occupiedBy.get(String(room._id)) || 0;
+    const occupied = validOccupiedCounts.get(String(room._id)) || 0;
     const available = Math.max(0, room.capacity - occupied);
     const status = available <= 0 ? 'Full' : 'Available';
     if (room.available_spaces !== available || room.status !== status) {

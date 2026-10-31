@@ -21,6 +21,7 @@ router.delete('/rooms/:id', h(c.deleteRoom));
 
 router.get('/applications', h(c.getApplications));
 router.put('/applications/:id', h(c.updateApplication));
+router.delete('/applications/:id', h(c.deleteApplication));
 
 router.get('/fees', h(c.getFees));
 router.get('/fee-users', h(c.getFeeUsers));

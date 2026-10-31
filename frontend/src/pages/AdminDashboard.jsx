@@ -143,7 +143,7 @@ function AdminContent() {
 
         <div className="page-content">
           {section === 'dashboard' && <DashboardSection stats={stats} recentStudents={recentStudents} recentApps={recentApps} go={id => showSection(id)} />}
-          {section === 'students' && <UsersSection />}
+          {section === 'students' && <UsersSection refreshDashboard={loadDashboard} />}
           {section === 'rooms' && <RoomsSection refreshDashboard={loadDashboard} />}
           {section === 'applications' && <ApplicationsSection confirm={confirm} refreshDashboard={loadDashboard} />}
           {section === 'fees' && <FeesSection confirm={confirm} success={success} refreshDashboard={loadDashboard} />}

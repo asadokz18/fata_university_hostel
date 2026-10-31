@@ -23,6 +23,14 @@ export default function ApplicationsSection({ confirm, refreshDashboard }) {
     });
   };
 
+  const deleteApp = (id) => {
+    confirm('Delete Application', 'Are you sure you want to delete this application? If it is approved, the room space will be freed.', async () => {
+      const data = await api.del(`/admin/applications/${id}`);
+      if (data.success) { loadApplications(); refreshDashboard(); }
+      else window.alert(data.message);
+    });
+  };
+
   return (
     <div id="sec-applications">
       <div className="content-card">
@@ -53,13 +61,23 @@ export default function ApplicationsSection({ confirm, refreshDashboard }) {
                     <td>{a.hostel_name} — Room {a.room_no}</td>
                     <td>{a.booking_duration || '—'}</td>
                     <td><Badge cls={a.status.toLowerCase()}>{a.status}</Badge></td>
-                    <td>
-                      {a.status === 'Pending' ? (
+                    <td style={{ whiteSpace: 'nowrap' }}>
+                      {a.status === 'Pending' && (
                         <>
-                          <button className="btn btn-sm" style={{ background: '#198754', color: '#fff', marginRight: 4 }} onClick={() => updateApp(a.id, 'Approved')}><i className="fas fa-check"></i></button>
-                          <button className="btn btn-danger btn-sm" onClick={() => updateApp(a.id, 'Rejected')}><i className="fas fa-times"></i></button>
+                          <button className="btn btn-sm" style={{ background: '#198754', color: '#fff', marginRight: 4 }} onClick={() => updateApp(a.id, 'Approved')} title="Approve"><i className="fas fa-check"></i></button>
+                          <button className="btn btn-danger btn-sm" style={{ marginRight: 4 }} onClick={() => updateApp(a.id, 'Rejected')} title="Reject"><i className="fas fa-times"></i></button>
+                          <button className="btn btn-sm" style={{ background: '#6c757d', color: '#fff' }} onClick={() => deleteApp(a.id)} title="Delete"><i className="fas fa-trash"></i></button>
                         </>
-                      ) : '—'}
+                      )}
+                      {a.status === 'Approved' && (
+                        <>
+                          <button className="btn btn-sm" style={{ background: '#d97706', color: '#fff', marginRight: 4 }} onClick={() => updateApp(a.id, 'Rejected')} title="Vacate / Free Room Space"><i className="fas fa-user-minus"></i> Vacate</button>
+                          <button className="btn btn-danger btn-sm" onClick={() => deleteApp(a.id)} title="Delete Application"><i className="fas fa-trash"></i></button>
+                        </>
+                      )}
+                      {a.status === 'Rejected' && (
+                        <button className="btn btn-danger btn-sm" onClick={() => deleteApp(a.id)} title="Delete Application"><i className="fas fa-trash"></i></button>
+                      )}
                     </td>
                   </tr>
                 ))}

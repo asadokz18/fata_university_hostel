@@ -46,6 +46,7 @@ async function nameMap(records, idField = 'user_id', roleField = 'user_role') {
 // DASHBOARD STATS   GET /api/admin/stats
 // ============================================
 exports.getStats = async (req, res) => {
+  await syncAllRooms();
   const [students, faculty, rooms, avail, complaints, feesAgg, pendingApps, notices, pendingFees, pendingGallery] =
     await Promise.all([
       Student.countDocuments(),
@@ -130,18 +131,14 @@ exports.deleteUser = async (req, res) => {
   const roleName = ucfirst(role);
   const Model = role === 'faculty' ? Faculty : Student;
 
-  // if they had an approved room, remember it so it can be recalculated
-  const app = await Application.findOne({
-    user_id: id, user_role: roleName, status: 'Approved', application_type: 'Apply'
-  });
-
   await Model.deleteOne({ _id: id });
-  // also remove their records
-  await Application.deleteMany({ user_id: id, user_role: roleName });
-  await Fee.deleteMany({ user_id: id, user_role: roleName });
-  await Complaint.deleteMany({ user_id: id, user_role: roleName });
+  // also remove all their records
+  await Application.deleteMany({ user_id: id });
+  await Fee.deleteMany({ user_id: id });
+  await Complaint.deleteMany({ user_id: id });
 
-  if (app) await syncRoomAvailability(app.room_id);
+  // Recalculate room availability so the freed space immediately updates
+  await syncAllRooms();
 
   ok(res, { message: `${roleName} deleted successfully.` });
 };
@@ -273,8 +270,8 @@ exports.updateApplication = async (req, res) => {
   app.remarks = remarks;
   await app.save();
 
-  if (status === 'Approved' || (previousStatus === 'Approved' && status === 'Rejected'))
-    await syncRoomAvailability(app.room_id);
+  if (app.room_id) await syncRoomAvailability(app.room_id);
+  await syncAllRooms();
 
   // notify the user
   let emailSent = false;
@@ -300,12 +297,30 @@ exports.updateApplication = async (req, res) => {
       { user_id: app.user_id, user_role: app.user_role, status: 'Approved', application_type: 'Apply' },
       { $set: { status: 'Rejected', remarks: 'Left room' } }
     );
-    await syncRoomAvailability(app.room_id);
+    if (app.room_id) await syncRoomAvailability(app.room_id);
+    await syncAllRooms();
   }
 
   let msg = `Application ${status} successfully.`;
   msg += emailSent ? ' Email sent to user.' : ' Email was not sent. Please check SMTP/admin settings.';
   ok(res, { message: msg });
+};
+
+// ============================================
+// DELETE APPLICATION   DELETE /api/admin/applications/:id
+// ============================================
+exports.deleteApplication = async (req, res) => {
+  const id = toId(req.params.id);
+  if (!id) return fail(res, 'Invalid application ID.');
+
+  const app = await Application.findById(id);
+  if (!app) return fail(res, 'Application not found.');
+
+  await Application.deleteOne({ _id: id });
+  if (app.room_id) await syncRoomAvailability(app.room_id);
+  await syncAllRooms();
+
+  ok(res, { message: 'Application deleted successfully.' });
 };
 
 // ============================================

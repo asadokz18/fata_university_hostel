@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { api, uploadUrl } from '../../api';
 import { Badge, Loading, NoData, genderBadge } from './common';
 
-export default function UsersSection() {
+export default function UsersSection({ refreshDashboard }) {
   const [role, setRole] = useState('student');
   const [search, setSearch] = useState('');
   const [users, setUsers] = useState(null);
@@ -17,10 +17,14 @@ export default function UsersSection() {
   useEffect(() => { loadUsers(role); /* eslint-disable-next-line */ }, [role]);
 
   const deleteUser = async id => {
-    if (!window.confirm('Delete this user permanently?')) return;
+    if (!window.confirm('Delete this user permanently? This will also remove their applications and free any assigned room.')) return;
     const data = await api.del(`/admin/users/${role}/${id}`);
-    if (data.success) loadUsers();
-    else window.alert(data.message);
+    if (data.success) {
+      loadUsers();
+      if (refreshDashboard) refreshDashboard();
+    } else {
+      window.alert(data.message);
+    }
   };
 
   const q = search.toLowerCase();
