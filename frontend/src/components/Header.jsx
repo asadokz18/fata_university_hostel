@@ -59,20 +59,20 @@ export default function Header({ variant = 'site', currentPage = '', scrolled = 
           <span>FATA University Hostel</span>
         </Link>
         <nav className="header-nav">
-          <Link to="/" className="btn-home"><i className="fas fa-home"></i> Home</Link>
+          <Link to="/" className="btn-home" title="Home"><i className="fas fa-home"></i> <span>Home</span></Link>
           {currentPage === 'login' && (
-            <Link to="/register" className="btn-home"><i className="fas fa-user-plus"></i> Register</Link>
+            <Link to="/register" className="btn-login" title="Register"><i className="fas fa-user-plus"></i> <span>Register</span></Link>
           )}
           {currentPage === 'register' && (
-            <Link to="/login" className="btn-login"><i className="fas fa-sign-in-alt"></i> Login</Link>
+            <Link to="/login" className="btn-login" title="Login"><i className="fas fa-sign-in-alt"></i> <span>Login</span></Link>
           )}
           {currentPage === 'forgot-password' && (
-            <Link to="/login" className="btn-login"><i className="fas fa-sign-in-alt"></i> Login</Link>
+            <Link to="/login" className="btn-login" title="Login"><i className="fas fa-sign-in-alt"></i> <span>Login</span></Link>
           )}
           {!currentPage && (
             <>
-              <Link to="/login" className="btn-login"><i className="fas fa-sign-in-alt"></i> Login</Link>
-              <Link to="/register" className="btn-home"><i className="fas fa-user-plus"></i> Register</Link>
+              <Link to="/login" className="btn-login" title="Login"><i className="fas fa-sign-in-alt"></i> <span>Login</span></Link>
+              <Link to="/register" className="btn-home" title="Register"><i className="fas fa-user-plus"></i> <span>Register</span></Link>
             </>
           )}
         </nav>
