@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Page from '../components/Page';
 import { api, toFormData } from '../api';
+import { compressImage } from '../helpers';
 import { dashboardFor, useAuth } from '../context/AuthContext';
 
 const METHODS = [
@@ -78,12 +79,17 @@ export default function PayOnline() {
       finalMethod = `Bank Transfer (${bank})`;
     }
 
+    let uploadFile = file;
+    if (uploadFile && uploadFile.type && uploadFile.type.startsWith('image/')) {
+      uploadFile = await compressImage(uploadFile, 1600, 1600, 0.85);
+    }
+
     const fd = toFormData({
       fee_id: fee.id,
       payment_method: finalMethod,
       transaction_id: trx
     });
-    fd.append('payment_proof', file);
+    fd.append('payment_proof', uploadFile);
 
     setBusy(true);
     const data = await api.post('/user/fee-payment', fd);

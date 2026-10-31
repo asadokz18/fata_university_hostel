@@ -252,12 +252,17 @@ body {
   top: 0;
   z-index: 100;
   border-bottom: 2px solid rgba(50, 106, 51, 0.08);
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .topbar-left {
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
+  flex: 1;
 }
 
 .topbar-welcome {
@@ -1236,6 +1241,14 @@ textarea.form-control {
     grid-template-columns: repeat(2, 1fr);
   }
 
+  .id-card-btn {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+    border-radius: 8px;
+  }
+
   .id-card-btn span {
     display: none;
   }
@@ -1264,12 +1277,61 @@ textarea.form-control {
   }
 
   .topbar {
-    padding: 12px 16px;
+    padding: 10px 14px;
+  }
+
+  .topbar-left {
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .topbar-welcome {
+    font-size: 0.95rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-date {
+    font-size: 0.72rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .topbar-right {
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .user-chip {
+    padding: 2px;
+    background: transparent;
+  }
+
+  .user-chip-name {
+    display: none;
   }
 
   .id-card-btn {
-    padding: 8px 12px;
+    width: 34px;
+    height: 34px;
+    padding: 0;
     font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar-right .id-card-btn {
+    display: none;
+  }
+
+  .topbar-welcome {
+    font-size: 0.92rem;
+  }
+
+  .topbar-date {
+    display: none;
   }
 }
 

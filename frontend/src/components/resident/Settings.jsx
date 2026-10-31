@@ -1,6 +1,7 @@
 // #sec-settings (profile management, password, account info)
 import { useEffect, useState } from 'react';
 import { api, toFormData } from '../../api';
+import { compressImage } from '../../helpers';
 import PasswordInput from '../PasswordInput';
 
 const SEMESTERS = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'].map(s => `${s} Semester`);
@@ -34,8 +35,9 @@ export default function Settings({ faculty, notify, onPhotoUpdated }) {
   }, [faculty]);
 
   const uploadProfilePhoto = async e => {
-    const file = e.target.files[0];
+    let file = e.target.files[0];
     if (!file) return;
+    file = await compressImage(file, 800, 800, 0.85);
     const fields = { phone, home_address: address };
     if (!faculty) fields.semester = semester;
     const fd = toFormData(fields);

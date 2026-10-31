@@ -1,6 +1,7 @@
 // #sec-gallery (upload + community gallery + my submitted photos)
 import { useEffect, useRef, useState } from 'react';
 import { api, toFormData, uploadUrl } from '../../api';
+import { compressImage } from '../../helpers';
 import Lightbox from '../Lightbox';
 
 export default function Gallery({ faculty }) {
@@ -8,6 +9,7 @@ export default function Gallery({ faculty }) {
   const [mine, setMine] = useState(null);
   const [alert, setAlert] = useState(null);
   const [caption, setCaption] = useState('');
+  const [uploading, setUploading] = useState(false);
   const [lightbox, setLightbox] = useState('');
   const fileRef = useRef(null);
 
@@ -23,19 +25,28 @@ export default function Gallery({ faculty }) {
   useEffect(() => { loadMine(); loadCommunity(); }, []);
 
   const uploadMyGallery = async () => {
-    const file = fileRef.current?.files[0];
+    let file = fileRef.current?.files[0];
     if (!file) {
       setAlert({ type: 'warning', icon: faculty, msg: faculty ? 'Please select a photo.' : 'Select a photo.' });
       return;
     }
-    const fd = toFormData({ caption: faculty ? caption.trim() : caption });
-    fd.append('photo', file);
-    const data = await api.post('/user/gallery', fd);
-    setAlert({ type: data.success ? 'success' : 'danger', msg: data.message });
-    if (data.success) {
-      fileRef.current.value = '';
-      setCaption('');
-      loadMine(); loadCommunity();
+    setUploading(true);
+    setAlert(null);
+    try {
+      file = await compressImage(file);
+      const fd = toFormData({ caption: faculty ? caption.trim() : caption });
+      fd.append('photo', file);
+      const data = await api.post('/user/gallery', fd);
+      setAlert({ type: data.success ? 'success' : 'danger', msg: data.message });
+      if (data.success) {
+        fileRef.current.value = '';
+        setCaption('');
+        loadMine(); loadCommunity();
+      }
+    } catch (e) {
+      setAlert({ type: 'danger', msg: e.message || 'Upload failed.' });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -66,7 +77,9 @@ export default function Gallery({ faculty }) {
               <label>Caption (optional)</label>
               <input type="text" className="form-control" id="galleryUploadCaption" placeholder="e.g. Common Room" value={caption} onChange={e => setCaption(e.target.value)} />
             </div>
-            <button className="btn btn-primary" onClick={uploadMyGallery}><i className="fas fa-upload"></i> Upload Photo</button>
+            <button className="btn btn-primary" onClick={uploadMyGallery} disabled={uploading}>
+              <i className={uploading ? 'fas fa-spinner fa-spin' : 'fas fa-upload'}></i> {uploading ? 'Uploading...' : 'Upload Photo'}
+            </button>
           </div>
 
           {/* Community Gallery */}

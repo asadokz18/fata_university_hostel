@@ -1,12 +1,14 @@
 // #sec-gallery
 import { useEffect, useRef, useState } from 'react';
 import { api, toFormData, uploadUrl } from '../../api';
+import { compressImage } from '../../helpers';
 import { Badge, Loading, Msg, NoData } from './common';
 
 export default function GallerySection({ confirm, refreshDashboard }) {
   const [items, setItems] = useState(null);
   const [alert, setAlert] = useState(null);
   const [caption, setCaption] = useState('');
+  const [uploading, setUploading] = useState(false);
   const fileRef = useRef(null);
 
   const loadGalleryAdmin = async () => {
@@ -18,16 +20,26 @@ export default function GallerySection({ confirm, refreshDashboard }) {
   useEffect(() => { loadGalleryAdmin(); }, []);
 
   const uploadGallery = async () => {
-    const file = fileRef.current?.files[0];
+    let file = fileRef.current?.files[0];
     if (!file) { setAlert({ type: 'warning', msg: 'Please select an image.' }); return; }
-    const fd = toFormData({ caption });
-    fd.append('photo', file);
-    const data = await api.post('/admin/gallery', fd);
-    setAlert({ type: data.success ? 'success' : 'danger', msg: data.message });
-    if (data.success) {
-      fileRef.current.value = '';
-      setCaption('');
-      loadGalleryAdmin();
+    
+    setUploading(true);
+    setAlert(null);
+    try {
+      file = await compressImage(file);
+      const fd = toFormData({ caption });
+      fd.append('photo', file);
+      const data = await api.post('/admin/gallery', fd);
+      setAlert({ type: data.success ? 'success' : 'danger', msg: data.message });
+      if (data.success) {
+        fileRef.current.value = '';
+        setCaption('');
+        loadGalleryAdmin();
+      }
+    } catch (e) {
+      setAlert({ type: 'danger', msg: e.message || 'Upload failed.' });
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -59,7 +71,9 @@ export default function GallerySection({ confirm, refreshDashboard }) {
               <label>Caption (optional)</label>
               <input type="text" className="form-control" id="galleryCaption" placeholder="e.g. Hostel Library" value={caption} onChange={e => setCaption(e.target.value)} />
             </div>
-            <button className="btn btn-primary" onClick={uploadGallery}><i className="fas fa-upload"></i> Upload</button>
+            <button className="btn btn-primary" onClick={uploadGallery} disabled={uploading}>
+              <i className={uploading ? 'fas fa-spinner fa-spin' : 'fas fa-upload'}></i> {uploading ? 'Uploading...' : 'Upload'}
+            </button>
           </div>
           <h4 style={{ marginBottom: 14, fontSize: '0.95rem' }}>All Submissions</h4>
           <div className="table-responsive">

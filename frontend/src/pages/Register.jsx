@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import Alert from '../components/Alert';
 import PasswordInput from '../components/PasswordInput';
 import { api, toFormData } from '../api';
+import { compressImage } from '../helpers';
 
 const DEPARTMENTS = [
   'BS Computer Science', 'Management Sciences', 'Political Science', 'English', 'Geology',
@@ -37,9 +38,10 @@ function useRegistration(action, emptyForm, submitLabelHtml) {
 
   const set = key => e => setForm(f => ({ ...f, [key]: e.target.value }));
 
-  const onPhoto = e => {
-    const file = e.target.files[0];
+  const onPhoto = async e => {
+    let file = e.target.files[0];
     if (!file) return;
+    file = await compressImage(file, 800, 800, 0.85);
     setPhoto(file);
     const reader = new FileReader();
     reader.onload = ev => setPreview(ev.target.result);

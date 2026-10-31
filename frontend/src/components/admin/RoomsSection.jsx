@@ -1,7 +1,7 @@
 // #sec-rooms + Add/Edit Room modal
 import { useEffect, useRef, useState } from 'react';
 import { api, toFormData, uploadUrl } from '../../api';
-import { openTableReport } from '../../helpers';
+import { openTableReport, compressImage } from '../../helpers';
 import { Badge, Msg } from './common';
 
 const HOSTELS = ['FAQIR IPI HOUSE', 'FATIMA HOUSE', 'KHYBER HOUSE'];
@@ -39,8 +39,11 @@ export default function RoomsSection({ refreshDashboard }) {
     const fd = toFormData({
       hostel_name: form.hostel_name, room_no: form.room_no, capacity: form.capacity, description: form.description
     });
-    const img = imgRef.current?.files[0];
-    if (img) fd.append('room_image', img);
+    let img = imgRef.current?.files[0];
+    if (img) {
+      img = await compressImage(img);
+      fd.append('room_image', img);
+    }
 
     const data = form.id ? await api.put(`/admin/rooms/${form.id}`, fd) : await api.post('/admin/rooms', fd);
     setAlert({ type: data.success ? 'success' : 'danger', msg: data.message });

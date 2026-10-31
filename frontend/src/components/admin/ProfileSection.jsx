@@ -1,7 +1,7 @@
 // #sec-profile (Admin profile, Update password, SMTP configuration)
 import { useEffect, useRef, useState } from 'react';
 import { api, toFormData, uploadUrl } from '../../api';
-import { initialsOf } from '../../helpers';
+import { initialsOf, compressImage } from '../../helpers';
 import PasswordInput from '../PasswordInput';
 import { Msg } from './common';
 
@@ -50,8 +50,11 @@ export default function ProfileSection({ success, onProfileUpdated }) {
 
   const updateAdminProfile = async () => {
     const fd = toFormData({ username: profile.username, full_name: profile.full_name, email: profile.email });
-    const photo = photoRef.current?.files[0];
-    if (photo) fd.append('profile_photo', photo);
+    let photo = photoRef.current?.files[0];
+    if (photo) {
+      photo = await compressImage(photo, 800, 800, 0.85);
+      fd.append('profile_photo', photo);
+    }
     const data = await api.put('/admin/profile', fd);
     if (data.success) {
       success('Profile Updated', data.message);

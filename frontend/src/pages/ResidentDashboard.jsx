@@ -122,12 +122,17 @@ function ResidentContent({ faculty }) {
             </div>
           </div>
           <div className="topbar-right">
-            <Link to={`${base}/id-card`} className="id-card-btn" onClick={goIdCard}><i className="fas fa-id-card"></i> Download ID Card</Link>
+            <Link to={`${base}/id-card`} className="id-card-btn" onClick={goIdCard} title="Download ID Card">
+              <i className="fas fa-id-card"></i> <span>Download ID Card</span>
+            </Link>
             <Link
               to={`${base}/ecard`} className="id-card-btn" onClick={goIdCard}
-              style={{ background: faculty ? '#d97706' : '#10b981', borderColor: faculty ? '#d97706' : '#10b981', marginLeft: 8 }}
-            ><i className="fas fa-mobile-alt"></i> View E-Card</Link>
-            <div className="user-chip">
+              title="View Digital E-Card"
+              style={{ background: faculty ? '#d97706' : '#10b981', borderColor: faculty ? '#d97706' : '#10b981' }}
+            >
+              <i className="fas fa-mobile-alt"></i> <span>View E-Card</span>
+            </Link>
+            <div className="user-chip" onClick={() => showSection('profile')}>
               <div className="user-chip-avatar" id="userChipAvatar">{avatar || (user ? initials : roleName[0])}</div>
               <span className="user-chip-name" id="userChipName">{name}</span>
             </div>

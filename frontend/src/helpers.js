@@ -130,3 +130,56 @@ export function openReceipt({ receiptNo, name, period, amount, variant }) {
   }
   openWindow(`<!DOCTYPE html><html><head><title>Fee Receipt</title><style>body{font-family:sans-serif;padding:40px;max-width:500px;margin:0 auto}h2{color:#326a33;text-align:center}.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #eee}@media print{button{display:none}}</style></head><body><h2>FATA University Hostel</h2><h3 style="text-align:center">Fee Receipt</h3><div class="row"><span>Receipt No:</span><strong>${esc(receiptNo)}</strong></div><div class="row"><span>Name:</span><strong>${esc(name || 'Student/Faculty')}</strong></div><div class="row"><span>Period:</span><strong>${esc(period)}</strong></div><div class="row"><span>Amount:</span><strong>Rs. ${amt}</strong></div><div class="row"><span>Status:</span><strong style="color:#198754">PAID</strong></div><br><button onclick="window.print()">🖨️ Print</button></body></html>`);
 }
+
+// Compress/resize image in browser to prevent large payloads and stay well within Vercel's 4.5MB limit
+export async function compressImage(file, maxWidth = 1600, maxHeight = 1600, quality = 0.82) {
+  if (!file || !file.type || !file.type.startsWith('image/')) return file;
+  if (file.type === 'image/gif' || file.type === 'image/svg+xml') return file;
+  if (file.size <= 400 * 1024) return file; // Already small enough (<400KB)
+
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxWidth || height > maxHeight) {
+          if (width / height > maxWidth / maxHeight) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          } else {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const mime = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+        canvas.toBlob(
+          (blob) => {
+            if (!blob || blob.size >= file.size) {
+              resolve(file);
+            } else {
+              const compressedFile = new File([blob], file.name, {
+                type: mime,
+                lastModified: Date.now()
+              });
+              resolve(compressedFile);
+            }
+          },
+          mime,
+          quality
+        );
+      };
+      img.onerror = () => resolve(file);
+      img.src = e.target.result;
+    };
+    reader.onerror = () => resolve(file);
+    reader.readAsDataURL(file);
+  });
+}
+

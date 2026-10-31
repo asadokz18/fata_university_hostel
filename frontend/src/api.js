@@ -26,9 +26,17 @@ async function request(method, path, body) {
       opts.body = JSON.stringify(body);
     }
     const res = await fetch(`${API_URL}/api${path}`, opts);
-    return await res.json();
-  } catch {
-    return { success: false, message: 'Connection error.' };
+    const contentType = res.headers.get('content-type') || '';
+    if (contentType.includes('application/json')) {
+      return await res.json();
+    }
+    if (res.status === 413) {
+      return { success: false, message: 'File is too large for the server. Please select an image under 4MB.' };
+    }
+    const text = await res.text();
+    return { success: false, message: text || `Server error (${res.status})` };
+  } catch (err) {
+    return { success: false, message: err?.message || 'Connection error.' };
   }
 }
 
