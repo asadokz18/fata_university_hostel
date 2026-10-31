@@ -10,6 +10,7 @@ const filterStyle = { padding: '9px 14px', border: '1.5px solid var(--border)', 
 export default function FeesSection({ confirm, success, refreshDashboard }) {
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [nameSearch, setNameSearch] = useState('');
   const [fees, setFees] = useState(null);
 
   // Add Fee modal
@@ -138,6 +139,13 @@ export default function FeesSection({ confirm, success, refreshDashboard }) {
 
   const isPdf = verify && verify.proof && verify.proof.toLowerCase().endsWith('.pdf');
 
+  const nameQ = nameSearch.trim().toLowerCase();
+  const filteredFees = (fees || []).filter(f => {
+    if (!nameQ) return true;
+    const name = (f.full_name || f.user_name || '').toLowerCase();
+    return name.includes(nameQ);
+  });
+
   return (
     <>
       <div id="sec-fees">
@@ -151,6 +159,13 @@ export default function FeesSection({ confirm, success, refreshDashboard }) {
           </div>
           <div className="content-card-body">
             <div className="filter-bar">
+              <input
+                type="text"
+                placeholder="Search by student or faculty name..."
+                value={nameSearch}
+                onChange={e => setNameSearch(e.target.value)}
+                style={{ ...filterStyle, flex: 1, minWidth: 180 }}
+              />
               <select id="feeRoleFilter" value={roleFilter} onChange={e => setRoleFilter(e.target.value)} style={filterStyle}>
                 <option value="">All Roles</option>
                 <option value="Student">Students</option>
@@ -169,8 +184,8 @@ export default function FeesSection({ confirm, success, refreshDashboard }) {
                 </thead>
                 <tbody id="feesBody">
                   {fees === null && <Loading cols={8} />}
-                  {fees && !fees.length && <NoData cols={8}>No fee records.</NoData>}
-                  {fees && fees.map((f, i) => (
+                  {fees && !filteredFees.length && <NoData cols={8}>No fee records match your filters.</NoData>}
+                  {filteredFees.map((f, i) => (
                     <tr key={f.id}>
                       <td>{i + 1}</td>
                       <td>{f.full_name || f.user_name || '—'}</td>
