@@ -13,7 +13,7 @@ const PasswordReset = require('../models/PasswordReset');
 
 const { sendHostelEmail } = require('../library/mailer');
 const templates = require('../library/emailTemplates');
-const { setAuthCookie, clearAuthCookie } = require('../middleware/auth');
+const { setAuthCookie, clearAuthCookie, signToken } = require('../middleware/auth');
 const {
   CI, str, lower, todayStr, extOf, hasFile, saveUpload, parseDevice, dashboardPath, modelForRole
 } = require('../utils/helper');
@@ -157,25 +157,28 @@ exports.login = async (req, res) => {
   // Check Admin (email OR username)
   const admin = await Admin.findOne({ $or: [{ email: identifier }, { username: identifier }] });
   if (admin && await bcrypt.compare(password, admin.password)) {
+    const token = signToken(admin._id, 'Admin');
     setAuthCookie(res, admin._id, 'Admin');
-    await notify(admin, 'Admin');
-    return res.json({ success: true, role: 'Admin', redirect: dashboardPath('Admin'), message: 'Welcome back, Admin!' });
+    notify(admin, 'Admin').catch(() => {});
+    return res.json({ success: true, token, role: 'Admin', redirect: dashboardPath('Admin'), message: 'Welcome back, Admin!' });
   }
 
   // Check Student
   const student = await Student.findOne({ email: identifier, status: 'Active' });
   if (student && await bcrypt.compare(password, student.password)) {
+    const token = signToken(student._id, 'Student');
     setAuthCookie(res, student._id, 'Student');
-    await notify(student, 'Student');
-    return res.json({ success: true, role: 'Student', redirect: dashboardPath('Student'), message: 'Welcome back!' });
+    notify(student, 'Student').catch(() => {});
+    return res.json({ success: true, token, role: 'Student', redirect: dashboardPath('Student'), message: 'Welcome back!' });
   }
 
   // Check Faculty
   const faculty = await Faculty.findOne({ email: identifier, status: 'Active' });
   if (faculty && await bcrypt.compare(password, faculty.password)) {
+    const token = signToken(faculty._id, 'Faculty');
     setAuthCookie(res, faculty._id, 'Faculty');
-    await notify(faculty, 'Faculty');
-    return res.json({ success: true, role: 'Faculty', redirect: dashboardPath('Faculty'), message: 'Welcome back!' });
+    notify(faculty, 'Faculty').catch(() => {});
+    return res.json({ success: true, token, role: 'Faculty', redirect: dashboardPath('Faculty'), message: 'Welcome back!' });
   }
 
   fail(res, 'Invalid email or password. Please try again.');

@@ -82,4 +82,4 @@ function requireAuth(req, res, next) {
   next();
 }
 
-module.exports = { attachAuth, requireAdmin, requireUser, requireAuth, setAuthCookie, clearAuthCookie, readAuth };
+module.exports = { attachAuth, requireAdmin, requireUser, requireAuth, setAuthCookie, clearAuthCookie, readAuth, signToken };

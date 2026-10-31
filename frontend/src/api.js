@@ -14,7 +14,11 @@ export function uploadUrl(path) {
 
 async function request(method, path, body) {
   try {
-    const opts = { method, credentials: 'include', headers: {} };
+    const token = localStorage.getItem('hostel_token');
+    const headers = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const opts = { method, credentials: 'include', headers };
     if (body instanceof FormData) {
       opts.body = body;
     } else if (body !== undefined) {
