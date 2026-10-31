@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import './Header.css';
 
 export default function Header({ variant = 'site', currentPage = '', scrolled = false }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -79,3 +80,4 @@ export default function Header({ variant = 'site', currentPage = '', scrolled = 
     </header>
   );
 }
+

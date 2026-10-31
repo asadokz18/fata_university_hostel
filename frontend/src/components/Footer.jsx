@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import './Footer.css';
 
 export default function Footer({ variant = 'site' }) {
   const smoothScroll = e => {
@@ -78,3 +79,4 @@ export default function Footer({ variant = 'site' }) {
     </footer>
   );
 }
+
