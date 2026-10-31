@@ -90,14 +90,23 @@ export default function Overview({ faculty, base, go, goIdCard, hasRoom, setHasR
   return (
     <div id="sec-overview">
       {hasRoom && (
-        <div id="idReadyBanner" className="id-ready-banner" style={{ display: 'flex' }}>
-          <div>
+        <div id="idReadyBanner" className="id-ready-banner">
+          <div className="id-ready-content">
             <h4>🎉 Your Hostel ID Card is Ready!</h4>
             <p>Your room has been assigned. Access your printable ID card and digital E-Card now.</p>
           </div>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-            <Link to={`${base}/id-card`} className="id-card-btn" onClick={goIdCard}><i className="fas fa-id-card"></i> Print ID Card</Link>
-            <Link to={`${base}/ecard`} className="id-card-btn" onClick={goIdCard} style={faculty ? { background: '#d97706', borderColor: '#d97706' } : { background: '#10b981', borderColor: '#10b981' }}><i className="fas fa-mobile-alt"></i> View E-Card</Link>
+          <div className="id-ready-actions">
+            <Link to={`${base}/id-card`} className="id-card-btn print-card-btn" onClick={goIdCard}>
+              <i className="fas fa-id-card"></i> Print ID Card
+            </Link>
+            <Link
+              to={`${base}/ecard`}
+              className="id-card-btn view-card-btn"
+              onClick={goIdCard}
+              style={faculty ? { background: '#d97706', borderColor: '#d97706' } : { background: '#10b981', borderColor: '#10b981' }}
+            >
+              <i className="fas fa-mobile-alt"></i> View E-Card
+            </Link>
           </div>
         </div>
       )}
