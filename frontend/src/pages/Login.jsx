@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import Page from '../components/Page';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import PasswordInput from '../components/PasswordInput';
 import { dashboardFor, useAuth } from '../context/AuthContext';
 
@@ -55,19 +57,7 @@ export default function Login() {
 
   return (
     <Page styles={['style.css', 'login.css']} title="Login - FATA University Hostel">
-      {/* ====== SITE HEADER ====== */}
-      <header className="site-header">
-        <div className="container">
-          <Link to="/" className="header-brand">
-            <img src="/assets/images/logo.png" alt="Logo" />
-            <span>FATA University Hostel</span>
-          </Link>
-          <nav className="header-nav">
-            <Link to="/" className="btn-home"><i className="fas fa-home"></i> Home</Link>
-            <Link to="/register" className="btn-home"><i className="fas fa-user-plus"></i> Register</Link>
-          </nav>
-        </div>
-      </header>
+      <Header currentPage="login" />
 
       {/* ====== MAIN ====== */}
       <main className="login-main">
@@ -127,9 +117,7 @@ export default function Login() {
       </main>
 
       {/* ====== FOOTER ====== */}
-      <footer className="site-footer">
-        <p>&copy; 2026 FATA University Hostel &nbsp;|&nbsp; <Link to="/">Home</Link> &nbsp;|&nbsp; <Link to="/#contact">Contact</Link></p>
-      </footer>
+      <Footer />
     </Page>
   );
 }

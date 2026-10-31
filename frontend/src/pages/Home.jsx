@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import Page from '../components/Page';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import { api, uploadUrl } from '../api';
 import { dashboardFor } from '../context/AuthContext';
 import { formatDatePK } from '../helpers';
@@ -201,26 +203,7 @@ function HomeContent() {
 
   return (
       <div ref={rootRef}>
-        {/* ====== SITE NAVIGATION BAR ====== */}
-        <nav className={`navbar${scrolled ? ' scrolled' : ''}`} id="navbar">
-          <div className="container">
-            <Link className="navbar-brand" to="/">
-              <img src="/assets/images/logo.png" alt="Logo" />
-              <span>FATA University Hostel</span>
-            </Link>
-            <button className={`hamburger${menuOpen ? ' active' : ''}`} id="hamburger" aria-label="Menu" onClick={() => setMenuOpen(o => !o)}>
-              <span></span><span></span><span></span>
-            </button>
-            <ul className={`navbar-nav${menuOpen ? ' open' : ''}`} id="navMenu">
-              {['home:Home', 'features:Features', 'hostels:Hostels', 'rooms:Rooms', 'notices:Notices', 'gallery:Gallery', 'contact:Contact'].map(s => {
-                const [id, label] = s.split(':');
-                return <li key={id}><a href={`#${id}`} onClick={e => { smoothScroll(e); closeMenu(); }}>{label}</a></li>;
-              })}
-              <li><Link to="/login" className="btn-login" onClick={closeMenu}>Login</Link></li>
-              <li><Link to="/register" className="btn-register" onClick={closeMenu}>Register</Link></li>
-            </ul>
-          </div>
-        </nav>
+        <Header variant="landing" scrolled={scrolled} />
 
         {/* ====== HERO SLIDER SECTION ====== */}
         <section className="hero" id="home">
@@ -437,46 +420,7 @@ function HomeContent() {
         </section>
 
         {/* ====== SITE FOOTER SECTION ====== */}
-        <footer className="footer">
-          <div className="container">
-            <div className="footer-grid">
-              <div>
-                <div className="footer-brand"><img src="/assets/images/logo.png" alt="Logo" />
-                  <div>
-                    <h3>FATA University Hostel</h3>
-                    <p style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.5)', margin: 0 }}>Est. FATA University</p>
-                  </div>
-                </div>
-                <p>We are committed to providing the best hostel accommodation with standard facilities ensuring a comfortable and student-friendly environment.</p>
-                <div className="social-links">
-                  <a href="#" title="Facebook" onClick={e => e.preventDefault()}><i className="fab fa-facebook-f"></i></a>
-                  <a href="#" title="Twitter" onClick={e => e.preventDefault()}><i className="fab fa-twitter"></i></a>
-                  <a href="#" title="Instagram" onClick={e => e.preventDefault()}><i className="fab fa-instagram"></i></a>
-                </div>
-              </div>
-              <div>
-                <h4>Explore</h4>
-                <ul>
-                  {['home:Home', 'features:Features', 'hostels:Hostels', 'notices:Notice Board', 'gallery:Gallery'].map(s => {
-                    const [id, label] = s.split(':');
-                    return <li key={id}><a href={`#${id}`} onClick={smoothScroll}><i className="fas fa-angle-right" style={{ marginRight: 6 }}></i>{label}</a></li>;
-                  })}
-                </ul>
-              </div>
-              <div>
-                <h4>Get In Touch</h4>
-                <div className="footer-contact-item"><i className="fas fa-map-marker-alt"></i><span>FATA University, Tehsil Sub Division(TSD) Darra Adam Khel,Newly Merged District (NMD) Kohat, KPK, Pakistan 26100.</span></div>
-                <div className="footer-contact-item"><i className="fas fa-phone"></i><span>0922-XXXXXX</span></div>
-                <div className="footer-contact-item"><i className="fas fa-envelope"></i><span>info@fu.edu.pk</span></div>
-              </div>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <div className="container">
-              <p>&copy; 2026 FATA University Hostel Management System. All Rights Reserved.</p>
-            </div>
-          </div>
-        </footer>
+        <Footer variant="landing" />
 
         {/* Lightbox - popup of the gallery images */}
         <div className={`modal-overlay${lightbox ? ' active' : ''}`} id="lightboxOverlay" onClick={() => setLightbox('')}>

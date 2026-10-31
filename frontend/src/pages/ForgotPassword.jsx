@@ -2,6 +2,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Page from '../components/Page';
+import Header from '../components/Header';
+import Footer from '../components/Footer';
 import PasswordInput from '../components/PasswordInput';
 import { api } from '../api';
 
@@ -157,19 +159,7 @@ export default function ForgotPassword() {
 
   return (
     <Page styles={['style.css', 'forgot_password.css']} title="Forgot Password - FATA University Hostel">
-      {/* HEADER */}
-      <header className="site-header">
-        <div className="container">
-          <Link to="/" className="header-brand">
-            <img src="/assets/images/logo.png" alt="Logo" />
-            <span>FATA University Hostel</span>
-          </Link>
-          <nav className="header-nav">
-            <Link to="/"><i className="fas fa-home"></i> Home</Link>
-            <Link to="/login" className="btn-login"><i className="fas fa-sign-in-alt"></i> Login</Link>
-          </nav>
-        </div>
-      </header>
+      <Header currentPage="forgot-password" />
 
       {/* MAIN */}
       <main className="login-main">
@@ -289,9 +279,7 @@ export default function ForgotPassword() {
       </main>
 
       {/* FOOTER */}
-      <footer className="site-footer">
-        <p>&copy; 2026 FATA University Hostel &nbsp;|&nbsp; <Link to="/">Home</Link> &nbsp;|&nbsp; <Link to="/login">Login</Link></p>
-      </footer>
+      <Footer />
     </Page>
   );
 }
