@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import './Header.css';
+import '../../public/assets/css/header.css';
 
 export default function Header({ variant = 'site', currentPage = '', scrolled = false }) {
   const [menuOpen, setMenuOpen] = useState(false);

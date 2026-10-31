@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import './Footer.css';
+import '../../public/assets/css/footer.css';
 
 export default function Footer({ variant = 'site' }) {
   const smoothScroll = e => {
