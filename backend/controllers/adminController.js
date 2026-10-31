@@ -111,13 +111,87 @@ exports.getRecentApplications = async (req, res) => {
 };
 
 // ============================================
-// GET USERS (students or faculty)   GET /api/admin/users?role=student|faculty
+// GET USERS (students or faculty)   GET /api/admin/users?role=student|faculty|all
 // ============================================
 exports.getUsers = async (req, res) => {
-  const type = str(req.query.role);
+  const type = str(req.query.role) || 'student';
+
+  if (type === 'all') {
+    const [students, faculty] = await Promise.all([
+      Student.find().sort({ created_at: -1 }),
+      Faculty.find().sort({ created_at: -1 })
+    ]);
+    const allUsers = [
+      ...students.map(s => ({ ...s.toJSON(), user_role: 'Student' })),
+      ...faculty.map(f => ({ ...f.toJSON(), user_role: 'Faculty' }))
+    ];
+    const userIds = allUsers.map(u => u.id);
+    const approvedApps = await Application.find({
+      user_id: { $in: userIds },
+      status: 'Approved',
+      application_type: 'Apply'
+    }).populate('room_id', 'hostel_name room_no');
+
+    const roomMap = new Map();
+    for (const app of approvedApps) {
+      if (app.room_id) {
+        roomMap.set(String(app.user_id), {
+          room_id: String(app.room_id._id),
+          hostel_name: app.room_id.hostel_name,
+          room_no: app.room_id.room_no,
+          assigned_room: `${app.room_id.hostel_name} — Room ${app.room_id.room_no}`,
+          duration: app.booking_duration,
+          approved_at: app.updated_at || app.applied_at
+        });
+      }
+    }
+
+    const userList = allUsers.map(u => {
+      const assigned = roomMap.get(String(u.id)) || null;
+      u.assigned_room = assigned ? assigned.assigned_room : null;
+      u.room_details = assigned;
+      return u;
+    });
+
+    return ok(res, { users: userList });
+  }
+
+  const roleName = type === 'faculty' ? 'Faculty' : 'Student';
   const Model = type === 'faculty' ? Faculty : Student;
   const users = await Model.find().sort({ created_at: -1 });
-  ok(res, { users });
+
+  const userIds = users.map(u => u._id);
+  const approvedApps = await Application.find({
+    user_id: { $in: userIds },
+    user_role: roleName,
+    status: 'Approved',
+    application_type: 'Apply'
+  }).populate('room_id', 'hostel_name room_no');
+
+  const roomMap = new Map();
+  for (const app of approvedApps) {
+    if (app.room_id) {
+      roomMap.set(String(app.user_id), {
+        room_id: String(app.room_id._id),
+        hostel_name: app.room_id.hostel_name,
+        room_no: app.room_id.room_no,
+        assigned_room: `${app.room_id.hostel_name} — Room ${app.room_id.room_no}`,
+        duration: app.booking_duration,
+        approved_at: app.updated_at || app.applied_at
+      });
+    }
+  }
+
+  const userList = users.map(u => {
+    const o = u.toJSON();
+    o.user_role = roleName;
+    const assigned = roomMap.get(String(u._id)) || null;
+    o.assigned_room = assigned ? assigned.assigned_room : null;
+    o.room_details = assigned;
+    return o;
+  });
+
+  ok(res, { users: userList });
 };
 
 // ============================================
